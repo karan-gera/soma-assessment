@@ -23,11 +23,38 @@ export async function POST(request: Request) {
     if (!title || title.trim() === '') {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
+
+    // Fetch image from Pexels API
+    let imageUrl = null;
+    try {
+      const apiKey = process.env.PEXELS_API_KEY;
+      if (apiKey) {
+        const imageResponse = await fetch(
+          `https://api.pexels.com/v1/search?query=${encodeURIComponent(title)}&per_page=1`,
+          {
+            headers: {
+              'Authorization': apiKey,
+            },
+          }
+        );
+
+        if (imageResponse.ok) {
+          const imageData = await imageResponse.json();
+          if (imageData.photos && imageData.photos.length > 0) {
+            imageUrl = imageData.photos[0].src.medium;
+          }
+        }
+      }
+    } catch (imageError) {
+      console.error('Error fetching image:', imageError);
+      // Continue without image if there's an error
+    }
     
     const todo = await prisma.todo.create({
       data: {
         title,
         dueDate: dueDate ? new Date(dueDate) : null,
+        imageUrl,
       },
     });
     console.log('Created todo:', todo);

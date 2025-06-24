@@ -6,6 +6,7 @@ export default function Home() {
   const [newTodo, setNewTodo] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [loadingTodos, setLoadingTodos] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     fetchTodos();
@@ -23,8 +24,12 @@ export default function Home() {
 
   const handleAddTodo = async () => {
     if (!newTodo.trim()) return;
+    
+    const tempId = Date.now();
+    setLoadingTodos(prev => new Set(prev).add(tempId));
+    
     try {
-      await fetch('/api/todos', {
+      const response = await fetch('/api/todos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -32,11 +37,20 @@ export default function Home() {
           dueDate: dueDate || null 
         }),
       });
-      setNewTodo('');
-      setDueDate('');
-      fetchTodos();
+      
+      if (response.ok) {
+        setNewTodo('');
+        setDueDate('');
+        fetchTodos();
+      }
     } catch (error) {
       console.error('Failed to add todo:', error);
+    } finally {
+      setLoadingTodos(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(tempId);
+        return newSet;
+      });
     }
   };
 
@@ -92,10 +106,10 @@ export default function Home() {
           {todos.map((todo: Todo) => (
             <li
               key={todo.id}
-              className="flex justify-between items-center bg-white bg-opacity-90 p-4 mb-4 rounded-lg shadow-lg"
+              className="flex justify-between items-start bg-white bg-opacity-90 p-4 mb-4 rounded-lg shadow-lg"
             >
-              <div className="flex flex-col">
-                <span className="text-gray-800">{todo.title}</span>
+              <div className="flex flex-col flex-grow mr-4">
+                <span className="text-gray-800 font-medium">{todo.title}</span>
                 {todo.dueDate && (
                   <span className={`text-sm mt-1 ${
                     isOverdue(todo.dueDate.toString()) ? 'text-red-600 font-semibold' : 'text-gray-600'
@@ -104,10 +118,28 @@ export default function Home() {
                     {isOverdue(todo.dueDate.toString()) && ' (Overdue)'}
                   </span>
                 )}
+                {todo.imageUrl && (
+                  <div className="mt-3">
+                    <img 
+                      src={todo.imageUrl} 
+                      alt={`Visual for: ${todo.title}`}
+                      className="w-full h-32 object-cover rounded-lg shadow-sm"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+                {loadingTodos.has(todo.id) && (
+                  <div className="mt-3 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                    <span className="ml-2 text-sm text-gray-600">Loading image...</span>
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => handleDeleteTodo(todo.id)}
-                className="text-red-500 hover:text-red-700 transition duration-300"
+                className="text-red-500 hover:text-red-700 transition duration-300 flex-shrink-0"
               >
                 {/* Delete Icon */}
                 <svg
