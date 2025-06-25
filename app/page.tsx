@@ -329,17 +329,17 @@ export default function Home() {
         {/* Dependency Management Modal */}
         {showDependencyModal && selectedTodo && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-lg font-bold mb-4">Manage Dependencies</h3>
+            <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full shadow-2xl border border-gray-700">
+              <h3 className="text-lg font-bold mb-4 text-white">Manage Dependencies</h3>
               <div className="space-y-2">
                 {todos
                   .filter(todo => todo.id !== selectedTodo)
                   .map(todo => (
-                    <div key={todo.id} className="flex items-center justify-between p-2 border rounded">
-                      <span className="text-sm">{todo.title}</span>
+                    <div key={todo.id} className="flex items-center justify-between p-2 border rounded border-gray-700 bg-gray-800">
+                      <span className="text-sm text-white">{todo.title}</span>
                       <button
                         onClick={() => handleAddDependency(selectedTodo, todo.id)}
-                        className="text-blue-500 hover:text-blue-700 text-sm"
+                        className="text-blue-300 hover:text-blue-400 text-sm font-semibold"
                       >
                         Add Dependency
                       </button>
@@ -348,7 +348,7 @@ export default function Home() {
               </div>
               <button
                 onClick={() => setShowDependencyModal(false)}
-                className="mt-4 w-full bg-gray-500 text-white p-2 rounded hover:bg-gray-600"
+                className="mt-4 w-full bg-gray-700 text-white p-2 rounded hover:bg-gray-600 font-semibold"
               >
                 Close
               </button>
