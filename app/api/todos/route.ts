@@ -7,6 +7,20 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc',
       },
+      include: {
+        dependencies: {
+          include: {
+            required: {
+              select: {
+                id: true,
+                title: true,
+                dueDate: true,
+                estimatedDuration: true,
+              }
+            }
+          }
+        }
+      }
     });
     return NextResponse.json(todos);
   } catch (error) {
@@ -17,8 +31,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { title, dueDate } = await request.json();
-    console.log('Received data:', { title, dueDate });
+    const { title, dueDate, estimatedDuration } = await request.json();
+    console.log('Received data:', { title, dueDate, estimatedDuration });
     
     if (!title || title.trim() === '') {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
@@ -55,6 +69,7 @@ export async function POST(request: Request) {
         title,
         dueDate: dueDate ? new Date(dueDate) : null,
         imageUrl,
+        estimatedDuration: estimatedDuration ? parseInt(estimatedDuration) : null,
       },
     });
     console.log('Created todo:', todo);
